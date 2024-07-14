@@ -269,7 +269,7 @@ WHERE film_id IN (
 -- 23. Encuentra el nombre y apellido de los actores que no han actuado en ninguna película de la categoría "Horror". Utiliza una subconsulta para encontrar los actores que han actuado en películas de la categoría "Horror" y luego exclúyelos de la lista de actores --
        
 
-
+-- Con una subconsulta.--
 SELECT first_name, last_name 
 FROM actor
 WHERE actor_id NOT IN (
@@ -280,7 +280,7 @@ WHERE actor_id NOT IN (
     INNER JOIN category
     USING(category_id)
     WHERE name = 'Horror');
-    
+-- Con dos subconsultas.--    
 SELECT first_name, last_name
 FROM actor
 WHERE actor_id NOT IN (
@@ -292,7 +292,10 @@ WHERE actor_id NOT IN (
             INNER JOIN category
 			USING (category_id)
             WHERE name = "Horror"));
-      
+ -- Con tres subconsultas. Esta sería la consulta final.--
+ -- Seleccionamos nombre y apellidos de la tabla de actores.--
+ -- Usando WHERE NOT IN, nos aseguramos de excluir a los actores que no han participado en ninguna película de Horror.-
+ -- Utilizamos a parte de la subconsulta NOT IN, dos consultas más para relacionar la tabla actor con la tabla category en la que podemos encontrar el nombre de la categoría Horror.--
 SELECT first_name, last_name
 FROM actor
 WHERE actor_id NOT IN (
@@ -308,6 +311,36 @@ WHERE actor_id NOT IN (
     
 
 
+-- 24. BONUS: Encuentra el título de las películas que son comedias y tienen una duración mayor a 180 minutos en la tabla film. --
+-- Seleccionamos el titulo de la tabla film y usamos dos subconsultas para relacionar la tabla film con la tabla category y complir las condiciones de que las películas sean del genero Comedia y duren más de 180 minutos.--
+SELECT  title
+FROM film
+WHERE film_id IN (
+      SELECT film_id
+      FROM film_category
+      WHERE category_id IN(
+            SELECT category_id
+            FROM category 
+            WHERE name = "Comedy" AND length > 180));
+            
+-- 25. BONUS: Encuentra todos los actores que han actuado juntos en al menos una película. La consulta debe mostrar el nombre y apellido de los actores y el número de películas en las que han actuado juntos.--
+
+-- Seleccionamos nombre y apellidos del primer y segundo actor y además contamos el número de películas en las que han coincidido.--
+-- Utilizamos INNER JOIN primero para encontrar coincidencias de películas, despues unimos al primer actor con las películas y por úlitmo al segundo actor con las películas.--
+-- Usamos la condición WHERE para que cada pareja de actores, como pareja, solo se cuente una vez, no se pueden incluir de manera invertida como pareja diferente. es decir actor_id1-actor_id2 es una pareja, pero actor_id2-actor_id1 nunca podrán conformarse como pareja.--
+-- Agrupamos los resultados por los actor_id, nombres y apellidos de ambos actores para contar las películas que han hecho juntos.--
+-- Con HAVING COUNT(*) >=1 Nos aseguramos de que han actuado en al menos una película juntos.--
+SELECT a1.first_name AS actor1_first_name, a1.last_name AS actor1_last_name, a2.first_name AS actor2_first_name, a2.last_name AS actor2_last_name, COUNT(*) AS films_together
+FROM film_actor fa1
+INNER JOIN film_actor fa2 
+USING (film_id)
+INNER JOIN actor a1 
+ON fa1.actor_id = a1.actor_id
+INNER JOIN actor a2 
+ON fa2.actor_id = a2.actor_id
+WHERE fa1.actor_id < fa2.actor_id
+GROUP BY a1.actor_id, a2.actor_id, a1.first_name, a1.last_name, a2.first_name, a2.last_name
+HAVING COUNT(*) >= 1;
 
 
 
