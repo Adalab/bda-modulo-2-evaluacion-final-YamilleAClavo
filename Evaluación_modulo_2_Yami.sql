@@ -266,38 +266,45 @@ HAVING COUNT(film_id) > 10;
  
 -- 22. Encuentra el título de todas las películas que fueron alquiladas por más de 5 días. Utiliza una subconsulta para encontrar los rental_ids con una duración superior a 5 días y luego selecciona las películas correspondientes. --
 
+-- En este caso nos piden usar una subquery.--
+-- Primero veo como saber la diferencia entre dos fechas, para eso uso DATEDIFF, y además quiero ver el rental_id, todo de la tabla rental, donde la condición WHERE es que hayan sido alquiladas por más de 5 días.--
+
+SELECT rental_id, DATEDIFF(return_date, rental_date) AS days
+FROM rental 
+WHERE DATEDIFF(return_date, rental_date) > 5;
+
+-- Despues usando un INNER JOIN relaciono las tablas inventory y rental.-- 
+
+ SELECT film_id, rental_id
+ FROM inventory
+ INNER JOIN rental
+ USING (inventory_id)
+ WHERE DATEDIFF(return_date, rental_date) >5;
+ 
+-- Por último realizo dos subconsultas--
 SELECT title
 FROM film
-WHERE rental_duration >5;
-
--- Pero en este caso nos piden usar una subquery para encontrar los rental_id--
--- Usamos varios INNER JOIN para unir las diferentes tablas y finalmente una subquery como pide el ejercicio para encontrar los rental_id.-- 
--- Esta sería la respuesta correcta, ya que nos está pidiendo todos los titulos y rental_ids para peliculas cuyo alquiler haya durado más de 5 días.--
-
-SELECT title, r.rental_id
-FROM film
-INNER JOIN inventory
-USING(film_id)
-INNER JOIN rental r
+WHERE film_id IN (
+      SELECT film_id
+      FROM inventory
+      WHERE inventory_id IN (
+           SELECT inventory_id
+           FROM rental 
+           WHERE DATEDIFf(return_date, rental_date) > 5));
+-- Como pide el rental_id, hago algunas modificaciones para poder añadirlo al SELECT y mostrarlo, siendo esta la opción escogida.--
+           
+SELECT f.title, r.rental_id
+FROM film f
+INNER JOIN inventory i 
+USING (film_id)
+INNER JOIN rental r 
 USING (inventory_id)
-WHERE r.rental_id IN(
-	 SELECT rental_id
-     FROM rental
-     WHERE rental_duration >5);
-     
--- Esta es otra opción en la que usamos solo el rental_id minimo asociado a cada película que su alquiler haya durado más de 5 días, en este caso no sería la respuesta correcta pues el ejercicio nos pide mostrar todos los rental_id.--     
+WHERE r.rental_id IN (
+      SELECT rental_id
+      FROM rental
+      WHERE DATEDIFF(return_date, rental_date) > 5);
 
-SELECT title,MIN(r.rental_id) AS rental_id
-FROM film
-INNER JOIN inventory
-USING(film_id)
-INNER JOIN rental r
-USING (inventory_id)
-WHERE r.rental_id IN(
-	 SELECT rental_id
-     FROM rental
-     WHERE rental_duration >5)
-     GROUP BY title;
+
      
 -- 23. Encuentra el nombre y apellido de los actores que no han actuado en ninguna película de la categoría "Horror". Utiliza una subconsulta para encontrar los actores que han actuado en películas de la categoría "Horror" y luego exclúyelos de la lista de actores --
        
