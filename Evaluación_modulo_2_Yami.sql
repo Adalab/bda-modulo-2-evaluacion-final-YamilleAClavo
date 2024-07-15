@@ -281,7 +281,8 @@ WHERE DATEDIFF(return_date, rental_date) > 5;
  USING (inventory_id)
  WHERE DATEDIFF(return_date, rental_date) >5;
  
--- Por último realizo dos subconsultas--
+-- Realizo dos subconsultas--
+
 SELECT title
 FROM film
 WHERE film_id IN (
@@ -291,6 +292,7 @@ WHERE film_id IN (
            SELECT inventory_id
            FROM rental 
            WHERE DATEDIFf(return_date, rental_date) > 5));
+           
 -- Como pide el rental_id, hago algunas modificaciones para poder añadirlo al SELECT y mostrarlo, siendo esta la opción escogida.--
            
 SELECT f.title, r.rental_id
